@@ -127,14 +127,17 @@ class Connector():
 
     def proxy_thread_target(self):
         system = platform.system().lower()
-        bin_map:dict[str,Path] = {
-            "windows": Path("mitmdump.exe"),
-            "linux": Path("mitmdump")
+        bin_map:dict[str,str] = {
+            "windows": "mitmdump.exe",
+            "linux": "mitmdump"
         }
         while True:
             if self.proxy_process is not None:
                  self.proxy_process.wait()    
-            self.proxy_process = subprocess.Popen(f"{bin_map[system].resolve()} -q -s mitm_addon.py")
+            self.proxy_process = subprocess.Popen(
+                [f"./{bin_map[system]}", "-q", "-s",  "mitm_addon.py"],
+                cwd=os.getcwd()
+            )
                 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
