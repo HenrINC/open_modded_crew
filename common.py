@@ -21,6 +21,7 @@ import json
 from abc import ABC, abstractmethod
 import platform
 import threading
+from pathlib import Path
 
 def split_big_text(text, max_len):
     DECORATORS_LEN = 8
@@ -126,14 +127,14 @@ class Connector():
 
     def proxy_thread_target(self):
         system = platform.system().lower()
-        bin_map = {
-            "windows": "mitmdump.exe",
-            "linux": "mitmdump"
+        bin_map:dict[str,Path] = {
+            "windows": Path("mitmdump.exe"),
+            "linux": Path("mitmdump")
         }
         while True:
             if self.proxy_process is not None:
                  self.proxy_process.wait()    
-            self.proxy_process = subprocess.Popen(f"./{bin_map[system]} -q -s mitm_addon.py")
+            self.proxy_process = subprocess.Popen(f"{bin_map[system].resolve()} -q -s mitm_addon.py")
                 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
