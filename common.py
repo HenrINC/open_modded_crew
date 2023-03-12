@@ -22,6 +22,7 @@ from abc import ABC, abstractmethod
 import platform
 import threading
 from pathlib import Path
+import tkinter
 
 def split_big_text(text, max_len):
     DECORATORS_LEN = 8
@@ -121,9 +122,14 @@ class Connector():
         self.cookies:str = ""
         self.verif_token:str = ""
         self.debug:bool = True
+        self.proxy_thread:Optional[threading.Thread] = None
         self.proxy_process:Optional[subprocess.Popen] = None
         self.fresh_cookies_thread:Optional[threading.Thread] = None
         self.player:Optional[Player] = None
+        self.vfb_process:Optional[subprocess.Popen] = None
+        self.driver:Optional[webdriver.Chrome] = None
+        
+        atexit.register(self.at_exit)
 
     def proxy_thread_target(self):
         system = platform.system().lower()
@@ -135,9 +141,53 @@ class Connector():
             if self.proxy_process is not None:
                  self.proxy_process.wait()    
             self.proxy_process = subprocess.Popen(
-                [f"./{bin_map[system]}", "-q", "-s",  "mitm_addon.py"],
+                [f"./{bin_map[system]}", "-q", "-s",  "./mitm_addon.py"],
                 cwd=os.getcwd()
             )
+        
+    def ensure_framebuffer(self):
+        """
+        This programm is intended to be used on headless servers but:
+         - the socialclub website does not work with headless chrome
+        so we need to install something like xvfb
+        this method will ensure that chromium can outpout it's display
+        on a framebuffer
+        """
+        
+        #This can seem a bit junky but tk ships whith python so no more requirements
+        try:
+            test_gui_app = tkinter.Tk()
+            test_gui_app.withdraw()
+            screen_size = test_gui_app.winfo_screenwidth()*test_gui_app.winfo_screenheight()
+            has_framebuffer = screen_size > 0
+
+        except:
+            has_framebuffer = False
+        
+        if not has_framebuffer:
+            system = platform.system().lower()
+            if system == "linux":
+                if self.vfb_process is not None and self.vfb_process.poll() is None:
+                    raise RuntimeError("The vfb process is running but there is no framebuffer")
+                else:
+                    self.vfb_process = subprocess.Popen("xvfb")
+                    if self.vfb_process.poll() is not None:
+                        raise RuntimeError("The vfb process didn't started properly")
+            else:
+                raise NotImplementedError("Can only start virtual frame buffer on linux")
+    
+    def at_exit(self):
+        if self.vfb_process is not None:
+            self.vfb_process.kill()
+        if self.proxy_thread is not None:
+            self.proxy_thread.stop()
+            self.proxy_thread.join()
+        if self.proxy_process is not None:
+            self.proxy_process.kill()
+        if self.driver is not None:
+            self.driver.quit()
+            
+
                 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
@@ -155,10 +205,9 @@ class Connector():
         opts = Options()
         opts.add_argument("--proxy-server=http://127.0.0.1:8080")
         #opts.headless = True #does not work in headless
+        self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
         self.driver.get("https://socialclub.rockstargames.com/profile/signin")
-        #TODO FIND A WAY TO KILL THE PROXY
-        atexit.register(lambda: [os.system(f"TASKKILL /F /IM {self.proxy_process.pid} /T"), self.driver.quit()]) #Closes proxy and driver at exit
         compleate_fields(self.driver,{
             "form [type=email]": email,
             "form [type=password]": password,
