@@ -19,6 +19,8 @@ from typing import Literal, Union, Callable, Any, Optional
 import requests
 import json
 from abc import ABC, abstractmethod
+import platform
+import threading
 
 def split_big_text(text, max_len):
     DECORATORS_LEN = 8
@@ -115,15 +117,28 @@ def get_json_or_default(filename, default={}):
 #JMP:CONNECTOR
 class Connector():
     def __init__(self):
-        self.cookies = ""
-        self.verif_token = ""
-        self.debug = True
+        self.cookies:str = ""
+        self.verif_token:str = ""
+        self.debug:bool = True
+        self.proxy_process:Optional[subprocess.Popen] = None
+        self.fresh_cookies_thread:Optional[threading.Thread] = None
+        self.player:Optional[Player] = None
 
-        self.player = None
+    def proxy_thread_target(self):
+        system = platform.system().lower()
+        bin_map = {
+            "windows": "mitmdump.exe",
+            "linux": "mitmdump"
+        }
+        while True:
+            if self.proxy_process is not None:
+                 self.proxy_process.wait()    
+            self.proxy_process = subprocess.Popen(f"./{bin_map[system]} -q -s mitm_addon.py")
+                
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
-        #Starts the proxy in loop so it restarts when it crashes
-        self.proxy_process = subprocess.Popen("START FOR /L %N IN () DO mitmdump.exe -s mitm_addon.py", shell = True)
+        self.proxy_thread = threading.Thread(target=self.proxy_thread_target)
+        self.proxy_thread.start()
         logging.info("Waiting for proxy to start")
         ping_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
@@ -190,9 +205,9 @@ class Connector():
         self.update_cookies()
 
     def keep_cookies_fresh(self):
-        _thread.start_new_thread(self.fresh_cookies_thread, ())
+        self.fresh_cookies_thread = threading.Thread(target=self.fresh_cookies_thread_target)
 
-    def fresh_cookies_thread(self):
+    def fresh_cookies_thread_target(self):
         while True:
             time.sleep(50)
             self.refresh_cookies()
