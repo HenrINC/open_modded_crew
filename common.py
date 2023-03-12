@@ -1,7 +1,3 @@
-"""
-The programm is plaged with sircular imports
-TODO split the codbase without getting circular import errors
-"""
 import subprocess
 import logging
 import socket
@@ -14,15 +10,13 @@ import chromedriver_autoinstaller
 import time
 import atexit
 import os
-import _thread
 from typing import Literal, Union, Callable, Any, Optional
 import requests
 import json
-from abc import ABC, abstractmethod
 import platform
 import threading
-from pathlib import Path
 import tkinter
+from debug_server import DebugServer, start_debug_server
 
 def split_big_text(text, max_len):
     DECORATORS_LEN = 8
@@ -122,14 +116,16 @@ class Connector():
         self.cookies:str = ""
         self.verif_token:str = ""
         self.debug:bool = True
+        self.running:bool = True
         self.proxy_thread:Optional[threading.Thread] = None
         self.proxy_process:Optional[subprocess.Popen] = None
         self.fresh_cookies_thread:Optional[threading.Thread] = None
         self.player:Optional[Player] = None
-        self.vfb_process:Optional[subprocess.Popen] = None
         self.driver:Optional[webdriver.Chrome] = None
+        self.debug_server:Optional[DebugServer] = None
+        self.debug_thread:Optional[threading.Thread] = None
         
-        atexit.register(self.at_exit)
+        atexit.register(self.stop)
 
     def proxy_thread_target(self):
         system = platform.system().lower()
@@ -137,9 +133,9 @@ class Connector():
             "windows": "mitmdump.exe",
             "linux": "mitmdump"
         }
-        while True:
+        while self.running:
             if self.proxy_process is not None:
-                 self.proxy_process.wait()    
+                self.proxy_process.wait()    
             self.proxy_process = subprocess.Popen(
                 [f"./{bin_map[system]}", "-q", "-s",  "./mitm_addon.py"],
                 cwd=os.getcwd()
@@ -170,25 +166,37 @@ class Connector():
                 if self.vfb_process is not None and self.vfb_process.poll() is None:
                     raise RuntimeError("The vfb process is running but there is no framebuffer")
                 else:
-                    self.vfb_process = subprocess.Popen("xvfb")
-                    if self.vfb_process.poll() is not None:
-                        raise RuntimeError("The vfb process didn't started properly")
+                    try:
+                        from xvfbwrapper import Xvfb
+                    except ImportError:
+                        raise ImportError("You are running open modded crew on a headless server,\
+                                          you need to install the Xvfb wrapper 'pip install xvfbwrapper'")
+                    self.vdisplay = Xvfb()
+                    self.vdisplay.start()
+
             else:
                 raise NotImplementedError("Can only start virtual frame buffer on linux")
     
-    def at_exit(self):
-        if self.vfb_process is not None:
-            self.vfb_process.kill()
-        if self.proxy_thread is not None:
-            self.proxy_thread.stop()
-            self.proxy_thread.join()
+    def stop(self):
+        self.running = False
         if self.proxy_process is not None:
             self.proxy_process.kill()
+        if self.proxy_thread is not None:
+            self.proxy_thread.join()
+        if self.fresh_cookies_thread is not None:
+            self.fresh_cookies_thread.join()
         if self.driver is not None:
             self.driver.quit()
-            
+        if self.debug_thread is not None:
+            self.debug_thread.join()
+        if self.vdisplay is not None:
+            self.vdisplay.stop()
+    
+    def debug_thread_target(self):
+        self.debug_server = start_debug_server(port = 8081)
+        while self.running:
+            self.debug_server.last_screenshot = self.driver.get_screenshot_as_png()
 
-                
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
         self.proxy_thread = threading.Thread(target=self.proxy_thread_target)
@@ -207,6 +215,10 @@ class Connector():
         #opts.headless = True #does not work in headless
         self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
+        if self.debug:
+            self.debug_thread = threading.Thread(target=self.debug_thread_target)
+            self.debug_thread.start()
+            
         self.driver.get("https://socialclub.rockstargames.com/profile/signin")
         compleate_fields(self.driver,{
             "form [type=email]": email,
@@ -259,9 +271,10 @@ class Connector():
 
     def keep_cookies_fresh(self):
         self.fresh_cookies_thread = threading.Thread(target=self.fresh_cookies_thread_target)
+        self.fresh_cookies_thread.start()
 
     def fresh_cookies_thread_target(self):
-        while True:
+        while self.running:
             time.sleep(50)
             self.refresh_cookies()
 
