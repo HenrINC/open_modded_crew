@@ -163,16 +163,13 @@ class Connector():
         if not has_framebuffer:
             system = platform.system().lower()
             if system == "linux":
-                if self.vfb_process is not None and self.vfb_process.poll() is None:
-                    raise RuntimeError("The vfb process is running but there is no framebuffer")
-                else:
-                    try:
-                        from xvfbwrapper import Xvfb
-                    except ImportError:
-                        raise ImportError("You are running open modded crew on a headless server,\
-                                          you need to install the Xvfb wrapper 'pip install xvfbwrapper'")
-                    self.vdisplay = Xvfb()
-                    self.vdisplay.start()
+                try:
+                    from xvfbwrapper import Xvfb
+                except ImportError:
+                    raise ImportError("You are running open modded crew on a headless server,\
+                                        you need to install the Xvfb wrapper 'pip install xvfbwrapper'")
+                self.vdisplay = Xvfb()
+                self.vdisplay.start()
 
             else:
                 raise NotImplementedError("Can only start virtual frame buffer on linux")
