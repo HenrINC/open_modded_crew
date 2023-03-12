@@ -35,7 +35,7 @@ elif system == "linux":
                 with open(mitm_path, "wb") as outfile:
                     outfile.write(f.read())
     
-    os.system(f"chmod -x {mitm_path}")
+    os.system(f"chmod +x {mitm_path}")
 
 
 else:
