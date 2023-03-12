@@ -2,7 +2,7 @@ import requests
 import io
 import zipfile
 import tarfile
-
+import os
 import platform
 
 system = platform.system().lower()
@@ -34,6 +34,8 @@ elif system == "linux":
             with tar.extractfile(member) as f:
                 with open(mitm_path, "wb") as outfile:
                     outfile.write(f.read())
+    
+    os.system(f"chmod -x {mitm_path}")
 
 
 else:
