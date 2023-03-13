@@ -126,6 +126,7 @@ class Connector():
         self.driver:Optional[webdriver.Chrome] = None
         self.debug_server:Optional[DebugServer] = None
         self.debug_thread:Optional[threading.Thread] = None
+        self.debug_server_thread:Optional[threading.Thread] = None
         
         atexit.register(self.stop)
 
@@ -188,11 +189,14 @@ class Connector():
             self.driver.quit()
         if self.debug_thread is not None:
             self.debug_thread.join()
+        if self.debug_server_thread is not None:
+            self.debug_server_thread.join()
         if self.vdisplay is not None:
             self.vdisplay.stop()
     
     def debug_thread_target(self):
         self.debug_server = start_debug_server(port = 8081)
+        logging.info(f"Running status {self.running}")
         while self.running:
             logging.info("Updating screenshot")
             self.debug_server.last_screenshot = self.driver.get_screenshot_as_png()
@@ -217,10 +221,10 @@ class Connector():
         self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
         if self.debug:
-            logging.info("Starting debug thread")
+            self.debug_server_thread = threading.Thread(target=start_debug_server, kwargs={"port": 8081})
+            self.debug_server_thread.start()
             self.debug_thread = threading.Thread(target=self.debug_thread_target)
             self.debug_thread.start()
-            logging.info("Started debug thread")
             
         self.driver.get("https://socialclub.rockstargames.com/profile/signin")
         compleate_fields(self.driver,{
