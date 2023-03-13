@@ -124,7 +124,6 @@ class Connector():
         self.fresh_cookies_thread:Optional[threading.Thread] = None
         self.player:Optional[Player] = None
         self.driver:Optional[webdriver.Chrome] = None
-        self.debug_server:Optional[DebugServer] = None
         self.debug_thread:Optional[threading.Thread] = None
         self.debug_server_thread:Optional[threading.Thread] = None
         
@@ -195,11 +194,10 @@ class Connector():
             self.vdisplay.stop()
     
     def debug_thread_target(self):
-        self.debug_server = start_debug_server(port = 8081)
         logging.info(f"Running status {self.running}")
         while self.running:
             logging.info("Updating screenshot")
-            self.debug_server.last_screenshot = self.driver.get_screenshot_as_png()
+            DebugServer.last_screenshot = self.driver.get_screenshot_as_png()
 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
