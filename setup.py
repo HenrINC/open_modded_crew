@@ -37,6 +37,8 @@ elif system == "linux":
     
     os.system(f"chmod +x {mitm_path}")
 
+    #installs the mitm certificate
+
 
 else:
     raise NotImplementedError(f"{system} is not supported")
