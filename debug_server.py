@@ -10,7 +10,7 @@ class DebugServer(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-    def do_GET(self, request):
+    def do_GET(self, *args, **kwargs):
         if self.last_screenshot is None:
             self.send_response(500)
             self.send_header("Content-type", "text/html")
