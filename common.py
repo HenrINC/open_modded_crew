@@ -18,6 +18,8 @@ import threading
 import tkinter
 from debug_server import DebugServer, start_debug_server
 
+logging.getLogger().setLevel(logging.INFO)
+
 def split_big_text(text, max_len):
     DECORATORS_LEN = 8
     for i in []:
@@ -193,6 +195,7 @@ class Connector():
         self.debug_server = start_debug_server(port = 8081)
         while self.running:
             self.debug_server.last_screenshot = self.driver.get_screenshot_as_png()
+            logging.info("Updating screenshot")
 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
