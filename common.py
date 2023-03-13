@@ -194,8 +194,8 @@ class Connector():
     def debug_thread_target(self):
         self.debug_server = start_debug_server(port = 8081)
         while self.running:
-            self.debug_server.last_screenshot = self.driver.get_screenshot_as_png()
             logging.info("Updating screenshot")
+            self.debug_server.last_screenshot = self.driver.get_screenshot_as_png()
 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
@@ -217,8 +217,10 @@ class Connector():
         self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
         if self.debug:
+            logging.info("Starting debug thread")
             self.debug_thread = threading.Thread(target=self.debug_thread_target)
             self.debug_thread.start()
+            logging.info("Started debug thread")
             
         self.driver.get("https://socialclub.rockstargames.com/profile/signin")
         compleate_fields(self.driver,{
