@@ -32,7 +32,7 @@ class DebugServer(BaseHTTPRequestHandler):
             self.wfile.write(self.last_screenshot)
 
 
-def start_debug_server(host="", port=80) -> Type[DebugServer]:
+def start_debug_server(host="0.0.0.0", port=80) -> Type[DebugServer]:
     webServer = HTTPServer((host, port), DebugServer)
     print("Server started http://%s:%s" % (host, port))
     webServer.serve_forever()
