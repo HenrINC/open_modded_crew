@@ -209,6 +209,7 @@ class Connector():
         logging.info("Started")
         opts = Options()
         opts.add_argument("--proxy-server=http://127.0.0.1:8080")
+        opts.add_argument("--no-sandbox")
         #opts.headless = True #does not work in headless
         self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
