@@ -196,7 +196,6 @@ class Connector():
     def debug_thread_target(self):
         logging.info(f"Running status {self.running}")
         while self.running:
-            logging.info("Updating screenshot")
             DebugServer.last_screenshot = self.driver.get_screenshot_as_png()
 
     def login(self, email:str, password:str):
