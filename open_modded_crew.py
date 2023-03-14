@@ -9,8 +9,6 @@ import json
 with open("config.json", "r") as file:
     config = json.load(file)
 
-
-
 connector = Connector()
 connector.login(config["email"], config["password"])
 

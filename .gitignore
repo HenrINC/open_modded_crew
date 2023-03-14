@@ -135,3 +135,5 @@ commands/*.json
 
 #mitm
 mitmdump*
+
+verif_token*

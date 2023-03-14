@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title>OpenModdedCrew Dashboard</title>
+    </head>
+    <body>
+        <header>
+            <h1>OpenModdedCrew Dashboard</h1>
+        </header>
+        <div class="input">
+            <span>Password</span>
+            <input id="passwd_input" type="password" name="password">
+        </div>
+        <div>
+            <button id="refresh">Refresh</button><button id="tab">Tab</button><br>
+            <img id="driver_display">
+        </div>
+        <script type="text/javascript">
+//Updates the cursor position for browser remote control
+var password = -1
+
+document.getElementById("passwd_input").onchange = function(e) {
+    password = e.target.value
+}
+
+document.getElementById("tab").onclick = function(e) {
+    // e = Mouse click event.
+    var rect = e.target.getBoundingClientRect();
+    var x = e.clientX - rect.left; //x position within the element.
+    var y = e.clientY - rect.top;  //y position within the element.
+
+    
+    fetch("/"+password+"tab")
+    }
+
+document.getElementById("refresh").onclick = function(e) {
+    document.getElementById("driver_display").src = password+"img"+ new Date().getTime()
+    }
+
+
+
+        </script>
+    </body>
+
+</html>

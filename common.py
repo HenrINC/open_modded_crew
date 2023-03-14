@@ -16,7 +16,7 @@ import json
 import platform
 import threading
 import tkinter
-from debug_server import DebugServer, start_debug_server
+from control_server.server import get_control_server
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -186,17 +186,16 @@ class Connector():
             self.fresh_cookies_thread.join()
         if self.driver is not None:
             self.driver.quit()
-        if self.debug_thread is not None:
-            self.debug_thread.join()
-        if self.debug_server_thread is not None:
-            self.debug_server_thread.join()
+        # if self.debug_thread is not None:
+        #     self.debug_thread.join()
         if self.vdisplay is not None:
             self.vdisplay.stop()
     
     def debug_thread_target(self):
         logging.info(f"Running status {self.running}")
-        while self.running:
-            DebugServer.last_screenshot = self.driver.get_screenshot_as_png()
+        control_server = get_control_server(self.driver)
+        logging.info(f"DEBUG PASSWORD: {control_server.debug_password}")
+        control_server.serve_forever()
 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
@@ -219,8 +218,6 @@ class Connector():
         self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
         if self.debug:
-            self.debug_server_thread = threading.Thread(target=start_debug_server, kwargs={"port": 8081})
-            self.debug_server_thread.start()
             self.debug_thread = threading.Thread(target=self.debug_thread_target)
             self.debug_thread.start()
             
@@ -230,7 +227,7 @@ class Connector():
             "form [type=password]": password,
             "form [type=submit]": Keys.ENTER
             })
-        for i in range(2):
+        while True:
             for j in range(50):
                 if self.driver.current_url == "https://socialclub.rockstargames.com/":
                     time.sleep(3)
@@ -242,9 +239,6 @@ class Connector():
                     return True
                 time.sleep(0.1)
             logging.warning("The anti-bot protection has been triggered")
-            input("PLASE COMPLEATE CAPTCHA")
-
-        return False
 
     def update_cookies_api(self):
         """
