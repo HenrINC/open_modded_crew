@@ -22,6 +22,14 @@ class BaseControlServer(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": True}).encode("utf-8"))
                 return None
+
+            if "enter" in self.path:
+                webdriver.ActionChains(self.driver).send_keys(Keys.ENTER).perform()
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True}).encode("utf-8"))
+                return None
             
             if "img" in self.path:
                 self.send_response(200)

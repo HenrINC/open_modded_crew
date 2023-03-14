@@ -11,7 +11,10 @@
             <input id="passwd_input" type="password" name="password">
         </div>
         <div>
-            <button id="refresh">Refresh</button><button id="tab">Tab</button><br>
+            <button id="refresh">Refresh</button>
+            <button id="tab">Tab</button>
+            <button id="enter">Enter</button>
+            <br>
             <img id="driver_display">
         </div>
         <script type="text/javascript">
@@ -23,18 +26,17 @@ document.getElementById("passwd_input").onchange = function(e) {
 }
 
 document.getElementById("tab").onclick = function(e) {
-    // e = Mouse click event.
-    var rect = e.target.getBoundingClientRect();
-    var x = e.clientX - rect.left; //x position within the element.
-    var y = e.clientY - rect.top;  //y position within the element.
-
-    
     fetch("/"+password+"tab")
-    }
+}
+
+document.getElementById("enter").onclick = function(e) {
+    fetch("/"+password+"enter")
+}
 
 document.getElementById("refresh").onclick = function(e) {
     document.getElementById("driver_display").src = password+"img"+ new Date().getTime()
-    }
+}
+
 
 
 
