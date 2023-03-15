@@ -17,6 +17,7 @@ import platform
 import threading
 import tkinter
 from control_server.server import get_control_server
+from http.server import HTTPServer
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -124,8 +125,8 @@ class Connector():
         self.fresh_cookies_thread:Optional[threading.Thread] = None
         self.player:Optional[Player] = None
         self.driver:Optional[webdriver.Chrome] = None
-        self.debug_thread:Optional[threading.Thread] = None
-        self.debug_server_thread:Optional[threading.Thread] = None
+        self.rctrl_thread:Optional[threading.Thread] = None
+        self.rctrl_server:Optional[HTTPServer] = None
         
         atexit.register(self.stop)
 
@@ -186,16 +187,17 @@ class Connector():
             self.fresh_cookies_thread.join()
         if self.driver is not None:
             self.driver.quit()
-        # if self.debug_thread is not None:
-        #     self.debug_thread.join()
+        if self.rctrl_server is not None:
+            self.rctrl_server.shutdown()
+        if self.rctrl_thread is not None:
+             self.rctrl_thread.join()
         if self.vdisplay is not None:
             self.vdisplay.stop()
     
-    def debug_thread_target(self):
-        logging.info(f"Running status {self.running}")
-        control_server = get_control_server(self.driver)
-        logging.info(f"DEBUG PASSWORD: {control_server.debug_password}")
-        control_server.serve_forever()
+    def rctrl_thread_target(self):
+        self.rctrl_server = get_control_server(self.driver)
+        logging.info(f"DEBUG PASSWORD: {self.rctrl_server.debug_password}")
+        self.rctrl_server.serve_forever()
 
     def login(self, email:str, password:str):
         chromedriver_autoinstaller.install()
@@ -213,13 +215,13 @@ class Connector():
         opts = Options()
         opts.add_argument("--proxy-server=http://127.0.0.1:8080")
         opts.add_argument("--no-sandbox")
-        opts.add_argument("----ignore-certificate-errors")
+        opts.add_argument("--ignore-certificate-errors")
         #opts.headless = True #does not work in headless
         self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
         if self.debug:
-            self.debug_thread = threading.Thread(target=self.debug_thread_target)
-            self.debug_thread.start()
+            self.rctrl_thread = threading.Thread(target=self.rctrl_thread_target)
+            self.rctrl_thread.start()
             
         self.driver.get("https://socialclub.rockstargames.com/profile/signin")
         compleate_fields(self.driver,{
@@ -236,6 +238,9 @@ class Connector():
                     self.update_cookies()
                     self.keep_cookies_fresh()
                     self.driver.minimize_window()
+                    self.rctrl_server.shutdown()
+                    self.rctrl_thread.join()
+                    logging.warning("SUCCESFULL login")
                     return True
                 time.sleep(0.1)
             logging.warning("The anti-bot protection has been triggered")
