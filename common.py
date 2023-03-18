@@ -237,13 +237,15 @@ class Connector():
                         self.verif_token = file.read()
                     self.update_cookies()
                     self.keep_cookies_fresh()
-                    self.driver.minimize_window()
-                    self.rctrl_server.shutdown()
-                    self.rctrl_thread.join()
+                    #self.driver.minimize_window() #Does not work on headless lol
+                    #self.rctrl_server.shutdown()
+                    #self.rctrl_thread.join()
                     logging.warning("SUCCESFULL login")
                     return True
                 time.sleep(0.1)
-            logging.warning("The anti-bot protection has been triggered")
+            logging.warning(
+                "The anti-bot protection has been triggered "
+                "Please use the rctr server to solve the captcha remotely")
 
     def update_cookies_api(self):
         """
