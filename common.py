@@ -238,8 +238,8 @@ class Connector():
                     self.update_cookies()
                     self.keep_cookies_fresh()
                     #self.driver.minimize_window() #Does not work on headless lol
-                    #self.rctrl_server.shutdown()
-                    #self.rctrl_thread.join()
+                    self.rctrl_server.shutdown()
+                    self.rctrl_thread.join()
                     logging.warning("SUCCESFULL login")
                     return True
                 time.sleep(0.1)
