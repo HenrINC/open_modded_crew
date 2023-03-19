@@ -6,9 +6,9 @@ import time
 from services.hook_service import Service as HookService
 import json
 
-print("#"*100)
-print("#"+f"{'Open Modded Crew Server': ^20}"+"#")
-print("#"*100)
+print("#"*50)
+print("#"+f"{'Open Modded Crew Server': ^48}"+"#")
+print("#"*50)
 
 with open("config.json", "r") as file:
     config = json.load(file)
