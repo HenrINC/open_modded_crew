@@ -20,6 +20,7 @@ from control_server.server import get_control_server
 from http.server import HTTPServer
 
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(filename='log.txt', filemode='w')
 
 def split_big_text(text, max_len):
     DECORATORS_LEN = 8
@@ -196,7 +197,7 @@ class Connector():
     
     def rctrl_thread_target(self):
         self.rctrl_server = get_control_server(self.driver)
-        logging.info(f"DEBUG PASSWORD: {self.rctrl_server.debug_password}")
+        print(f"DEBUG PASSWORD: {self.rctrl_server.debug_password}")
         self.rctrl_server.serve_forever()
 
     def login(self, email:str, password:str):
@@ -299,12 +300,12 @@ it has a bunch of robustness
         last_code = 0
         for i in range(3):
             try:
-                print(f"Requesting {url}")
+                logging.info(f"Requesting {url}")
                 if data:
                     response:requests.Response = func(url, headers = headers, data = data)
                 else:
                     response:requests.Response = func(url, headers = headers)
-                print(f"Response [{response.status_code}] {url}")
+                logging.info(f"Response [{response.status_code}] {url}")
 
                 if "json" in response.headers["content-type"].lower():
                     content = response.json()
