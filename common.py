@@ -88,7 +88,6 @@ def go_as_blind_where(driver, fun, timeout = 30):
             raise TimeoutError("Can't go there in time")
 
 def compleate_fields(driver,fields, timeout = 30):
-
     """
 Fields is a dict {css_selector:keys}
 """
@@ -109,8 +108,11 @@ Fields is a dict {css_selector:keys}
 
 def get_json_or_default(filename, default={}):
     if os.path.exists(filename):
-        with open(filename) as f:
-            return json.load(f)
+        try:
+            with open(filename) as f:
+                return json.load(f)
+        except:
+            return default
     else:
         return default
 
@@ -128,6 +130,8 @@ class Connector():
         self.driver:Optional[webdriver.Chrome] = None
         self.rctrl_thread:Optional[threading.Thread] = None
         self.rctrl_server:Optional[HTTPServer] = None
+
+        self.disable_cookie_login = False
         
         atexit.register(self.stop)
 
@@ -199,10 +203,52 @@ class Connector():
         self.rctrl_server = get_control_server(self.driver)
         print(f"DEBUG PASSWORD: {self.rctrl_server.debug_password}")
         self.rctrl_server.serve_forever()
+    
+    def _cookie_login(self):
+        self.driver.get("https://socialclub.rockstargames.com/")
+        for cookie in get_json_or_default("cookies.json", []):
+            try:
+                self.driver.add_cookie(cookie)
+            except Exception as e:
+                logging.warning(f"Can't add cookie [{cookie}] because of [{e}]")
+        self.driver.refresh()
+    
+    def _account_login(self):
+        self.driver.get("https://signin.rockstargames.com/signin/user-form?cid=socialclub")
+        compleate_fields(self.driver,{"form [name=keepMeSignedIn]":""})
+        self.driver.execute_script(
+           """document.querySelector("form [name=keepMeSignedIn]").click()"""
+        )
+        credentials = get_json_or_default("credentials.json", None)
+        assert credentials, "No credentials file provided"
+        if self.debug:
+            self.rctrl_thread = threading.Thread(
+                target=self.rctrl_thread_target,
+                name="RCTRL thread"
+            )
+            self.rctrl_thread.start()
+        compleate_fields(self.driver,{
+            "form [type=email]": credentials["email"],
+            "form [type=password]": credentials["password"],
+            "form [type=submit]": Keys.ENTER,
+        })
+        while True:
+            for _ in range(50):
+                if self.driver.current_url == "https://socialclub.rockstargames.com/":
+                    self.rctrl_server.shutdown()
+                    self.rctrl_thread.join()
+                    return True
+                time.sleep(0.1)
+            logging.warning(
+                "The anti-bot protection has been triggered "
+                "Please use the rctrl server to solve the captcha remotely")
 
-    def login(self, email:str, password:str):
+    def login(self):
         chromedriver_autoinstaller.install()
-        self.proxy_thread = threading.Thread(target=self.proxy_thread_target)
+        self.proxy_thread = threading.Thread(
+            target=self.proxy_thread_target,
+            name="Proxy thread"    
+        )
         self.proxy_thread.start()
         logging.info("Waiting for proxy to start")
         ping_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -217,36 +263,25 @@ class Connector():
         opts.add_argument("--proxy-server=http://127.0.0.1:8080")
         opts.add_argument("--no-sandbox")
         opts.add_argument("--ignore-certificate-errors")
-        #opts.headless = True #does not work in headless
         self.ensure_framebuffer()
         self.driver = webdriver.Chrome(options=opts)
-        if self.debug:
-            self.rctrl_thread = threading.Thread(target=self.rctrl_thread_target)
-            self.rctrl_thread.start()
             
-        self.driver.get("https://socialclub.rockstargames.com/profile/signin")
-        compleate_fields(self.driver,{
-            "form [type=email]": email,
-            "form [type=password]": password,
-            "form [type=submit]": Keys.ENTER
-            })
-        while True:
-            for j in range(50):
-                if self.driver.current_url == "https://socialclub.rockstargames.com/":
-                    time.sleep(3)
-                    with open("verif_token.txt", "r") as file:
-                        self.verif_token = file.read()
-                    self.update_cookies()
-                    self.keep_cookies_fresh()
-                    #self.driver.minimize_window() #Does not work on headless lol
-                    self.rctrl_server.shutdown()
-                    self.rctrl_thread.join()
-                    logging.warning("SUCCESFULL login")
-                    return True
-                time.sleep(0.1)
-            logging.warning(
-                "The anti-bot protection has been triggered "
-                "Please use the rctr server to solve the captcha remotely")
+        if not self.disable_cookie_login and os.path.exists("cookies.json"):
+            self._cookie_login()
+            try:
+                self.driver.find_element(By.CSS_SELECTOR, "[type=button][href]")
+                loged_in = False
+            except:
+                loged_in = True
+        
+        if not loged_in:
+            assert self._account_login(), "Could not login"
+        
+        with open("verif_token.txt", "r") as file:
+            self.verif_token = file.read()
+        self.update_cookies()
+        self.keep_cookies_fresh()
+        logging.info("SUCCESFULL login")
 
     def update_cookies_api(self):
         """
@@ -266,7 +301,11 @@ class Connector():
         response
 
     def export_driver_cookies(self):
-        return ";".join([f"{cookie['name']}={cookie['value']}"for cookie in self.driver.get_cookies()])
+        cookies = self.driver.get_cookies()
+        if not self.disable_cookie_login:
+            with open("cookies.json", "w") as f:
+                json.dump(cookies, f)
+        return ";".join([f"{cookie['name']}={cookie['value']}"for cookie in cookies])
     
     def update_cookies(self):
         self.cookies = self.export_driver_cookies()
@@ -277,13 +316,20 @@ class Connector():
         self.update_cookies()
 
     def keep_cookies_fresh(self):
-        self.fresh_cookies_thread = threading.Thread(target=self.fresh_cookies_thread_target)
+        self.fresh_cookies_thread = threading.Thread(
+            target=self.fresh_cookies_thread_target,
+            name="Fresh cookies thread"
+        )
         self.fresh_cookies_thread.start()
 
     def fresh_cookies_thread_target(self):
         while self.running:
-            time.sleep(50)
-            self.refresh_cookies()
+            try:
+                self.refresh_cookies()
+                time.sleep(50)
+            except Exception:
+                logging.warning("Failed to refresh cookies")
+                time.sleep(5)
 
     
     def api_request(

@@ -21,6 +21,6 @@ class Command(LazyCommand):
             self.crew.command_config[namespace.change_rank]["min_rank"] = namespace.min_rank
             return f"Command [{namespace.change_rank}] changed succesfully for rank [{ranks[namespace.min_rank]}] and higher"
         elif namespace.list:
-            return ",".join(["/"+repr(command) for command in self.crew.commands])
+            return ",".join(["/"+command.name for command in self.crew.commands])
         elif namespace.reload:
             self.crew.reload_commands()

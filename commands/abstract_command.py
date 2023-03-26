@@ -11,8 +11,6 @@ class AbstractCommand(ABC):
         self.name = name
         self.min_rank = min_rank
         self.connector = connector
-    
-
 
     @abstractmethod
     def run(self, args:list[str], actor:CrewMember):
@@ -23,4 +21,4 @@ class AbstractCommand(ABC):
         raise NotImplementedError()
 
     def __repr__(self):
-        return f"<{self.name}>"
+        return f"<Command {self.name}>"

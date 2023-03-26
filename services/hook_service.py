@@ -1,5 +1,5 @@
 from services.abstract_service import AbstractService
-
+import logging
 import time
 
 class Service(AbstractService):
@@ -34,7 +34,7 @@ class Service(AbstractService):
                         if service.running:
                             service.on_post(posts)
                 except:
-                    print("Could not get wall posts")
+                    logging.error("Could not get wall posts")
                 finally:
                     self.last_hook_call["posts"] = time.time()
                 

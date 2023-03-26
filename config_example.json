@@ -1,6 +1,4 @@
 {
-    "email": "<address>@<server>",
-    "password": "<password>",
     "crews": [
         "<crew name 1>",
         "<crew name 2>"

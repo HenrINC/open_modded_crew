@@ -136,4 +136,12 @@ commands/*.json
 #mitm
 mitmdump*
 
-verif_token*
+#Credentials
+verif_token.*
+cookies.*
+auth.*
+credentials.*
+
+#Logs
+log.*
+*.log
