@@ -1,5 +1,5 @@
 from commands.lazy_command import LazyCommand
-from common import CrewMember, fix_style_proprety_value
+from common import CrewMember, fix_style_property_value
 from base64 import b32decode
 
 class Command(LazyCommand):
@@ -12,7 +12,7 @@ class Command(LazyCommand):
         self.parser.add_argument("-remove", action="store_true")
         self.parser.add_argument("-drop_duplicates", action="store_true")
         self.parser.add_argument("-set_delay", type=int)
-        self.parser.add_argument("--proprety")
+        self.parser.add_argument("--property")
         self.parser.add_argument("--value")
         self.parser.add_argument("--base32", action="store_true")
     
@@ -20,10 +20,10 @@ class Command(LazyCommand):
         if namespace.value is not None:
             if namespace.base32:
                 namespace.value = b32decode(value, casefold=True).decode()
-            namespace.value = fix_style_proprety_value(namespace.value)
+            namespace.value = fix_style_property_value(namespace.value)
         if namespace.set or namespace.add or namespace.get:
             style = self.crew.get_style()
-            if namespace.proprety is None:
+            if namespace.property is None:
                 old_cfg = self.crew.service_config["style_service_config"].copy()
                 if namespace.get:
                     return f"[SUCCESS] {old_cfg}"
@@ -39,29 +39,29 @@ class Command(LazyCommand):
             else:
                 if "style_service_config" not in self.crew.service_config:
                     raise ValueError("Style is not configured, please run \"/style -set\"")
-                if namespace.proprety not in style:
-                    raise ValueError(f"The property \"{namespace.proprety}\" is not a style proprety,\
-                                     aviable propreties are : {list(self.crew.service_config['style_service_config'].keys())}")
+                if namespace.property not in style:
+                    raise ValueError(f"The property \"{namespace.property}\" is not a style property,\
+                                     available properties are : {list(self.crew.service_config['style_service_config'].keys())}")
                 
                 if namespace.value is None:
-                    value = style[namespace.proprety]
+                    value = style[namespace.property]
                 else:
                     value = namespace.value
-                old_value = self.crew.service_config["style_service_config"][namespace.proprety].copy()
+                old_value = self.crew.service_config["style_service_config"][namespace.property].copy()
                 if namespace.get:
-                    return f"[SUCCESS]{namespace.proprety} : {old_value}"
+                    return f"[SUCCESS]{namespace.property} : {old_value}"
                 
                 if namespace.set:
-                    self.crew.service_config["style_service_config"][namespace.proprety] = [value]
+                    self.crew.service_config["style_service_config"][namespace.property] = [value]
                 else:
-                    self.crew.service_config["style_service_config"][namespace.proprety].append(value)
-                return f"[SUCCESS]{namespace.proprety} : {old_value} => \
-                    {self.crew.service_config['style_service_config'][namespace.proprety]}"                    
+                    self.crew.service_config["style_service_config"][namespace.property].append(value)
+                return f"[SUCCESS]{namespace.property} : {old_value} => \
+                    {self.crew.service_config['style_service_config'][namespace.property]}"                    
                 
 
         elif namespace.remove:
-            if namespace.proprety is None:
-                raise ValueError("Argument \"proprety\" is required")
+            if namespace.property is None:
+                raise ValueError("Argument \"property\" is required")
             if namespace.value is None:
                 raise ValueError("Argument \"value\" is required")
         
