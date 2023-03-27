@@ -145,3 +145,6 @@ credentials.*
 #Logs
 log.*
 *.log
+
+#VsCode
+.vscode

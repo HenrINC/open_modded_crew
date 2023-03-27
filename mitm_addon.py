@@ -1,11 +1,6 @@
 import logging
 
 class ShowToken:
-    """def requestheaders(self, flow):
-        headers = flow.request.headers
-        for header in headers:
-            if header == "__RequestVerificationToken":
-                logging.info("VerifToken: "+headers[header])"""
     def response(self, flow):
         content = flow.response.content
         if b"__RequestVerificationToken" in content:
