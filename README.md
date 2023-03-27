@@ -20,14 +20,14 @@ To use the open_modded_crew bot, you'll need to follow these steps:
 }
 `
 3. Create a `config.json` file in the same directory as `open_modded_crew.py` with the names of the crews you want to manage in the following format:
-'''
+`
 {
     "crews": [
         "crew_name_1",
         "crew_name_2"
     ]
 }
-'''
+`
 4. Install the required dependencies using the `pip install -r requirements.txt` command.
 
 5. Start the bot by running the `open_modded_crew.py` script.
