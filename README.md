@@ -48,11 +48,11 @@ The bot provides a set of commands with a CLI-like syntax that allow users to in
 
 You can use the following switches with the `/command` command:
 
-`-add <command name> [--rank <minimum rank>]`: Adds a new command with the specified name.
-`-remove <command name> [--rank <minimum rank>]`: Removes a command with the specified name.
-`-update <command name> [--rank <minimum rank>]`: Updates the configuration of the command with the specified name.
-`-list`: Lists all added commands.
-`-reload`: Commits and applies any changes made to the command configuration.
+- `-add <command name> [--rank <minimum rank>]`: Adds a new command with the specified name.
+- `-remove <command name> [--rank <minimum rank>]`: Removes a command with the specified name.
+- `-update <command name> [--rank <minimum rank>]`: Updates the configuration of the command with the specified name.
+- `-list`: Lists all added commands.
+- `-reload`: Commits and applies any changes made to the command configuration.
 
 ## Conclusion
 
