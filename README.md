@@ -1,8 +1,12 @@
-### Introduction
+# Open Modded Crew Bot
 
-Open_modded_crew is a bot designed to bring Discord-like functionality to the Rockstar Games Social Club platform. The bot allows users to create and manage their own crews, invite members, and communicate with their crew members. The bot is built with the intention of making it easier for gamers to organize their gaming communities, plan sessions, and stay connected with their crew members.
+Open_Modded_Crew is a Python-based tool that provides Discord-like functionality for the Rockstar Games Social Club (RGSC). It allows you to manage your crew(s) on RGSC in a more efficient and user-friendly way, with features such as member management, enhanced customization, and crew statistics.
 
-### Getting Started
+Unlike Discord bots, Open_Modded_Crew is not a Discord bot itself. Instead, it is designed to work exclusively with RGSC, providing Discord-like functionality within the RGSC environment. This means that you can use Open_Modded_Crew to manage your crew(s) directly on RGSC, without the need to switch to a different platform.
+
+With Open_Modded_Crew, you can communicate with your crew members, create custom events, view crew statistics, and much more. Whether you're a crew leader or member, Open_Modded_Crew is a useful tool that can help you manage your RGSC crew(s) more efficiently.
+
+## Getting Started
 
 To use the open_modded_crew bot, you'll need to follow these steps:
 
@@ -28,7 +32,7 @@ To use the open_modded_crew bot, you'll need to follow these steps:
 
 5. Start the bot by running the `open_modded_crew.py` script.
 
-### Features
+## Features
 
 The open_modded_crew bot includes the following features:
 
@@ -36,6 +40,10 @@ The open_modded_crew bot includes the following features:
 
 - **Communication**: Users can communicate with their crew members using the bot's messaging features.
 
-### Conclusion
+## Commands
+
+The bot provides a set of commands that allow users to interact with it and access its functionality. By default, only the `/command` and `/service` commands are enabled. The `/command` command is used to manage, enable, or disable other commands, while the `/service` command is used to manage services that the bot can provide. In this section, we will provide a description of each command and how to use them. Additionally, we will show how to add new commands to the bot.
+
+## Conclusion
 
 Open_modded_crew is a powerful tool for managing crews and communicating with crew members within the Rockstar Games Social Club platform. With its intuitive interface and powerful features, it makes it easy for gamers to stay connected with their crew members and organize their gaming communities.
