@@ -44,6 +44,16 @@ The open_modded_crew bot includes the following features:
 
 The bot provides a set of commands that allow users to interact with it and access its functionality. By default, only the `/command` and `/service` commands are enabled. The `/command` command is used to manage, enable, or disable other commands, while the `/service` command is used to manage services that the bot can provide. In this section, we will provide a description of each command and how to use them. Additionally, we will show how to add new commands to the bot.
 
+### Using the /command command
+
+You can use the following switches with the `/command` command:
+
+-add <command name> [--rank <minimum rank>]: Adds a new command with the specified name.
+-remove <command name>: Removes a command with the specified name.
+-update <command name>: Updates the configuration of the command with the specified name.
+-list: Lists all added commands.
+-reload: Commits and applies any changes made to the command configuration.
+
 ## Conclusion
 
 Open_modded_crew is a powerful tool for managing crews and communicating with crew members within the Rockstar Games Social Club platform. With its intuitive interface and powerful features, it makes it easy for gamers to stay connected with their crew members and organize their gaming communities.
