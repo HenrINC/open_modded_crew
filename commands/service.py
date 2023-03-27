@@ -15,36 +15,31 @@ class Command(LazyCommand):
         self.parser.add_argument("-start")
         self.parser.add_argument("-stop")
         self.parser.add_argument("-reload", action="store_true")
-        self.parser.add_argument("--force", action="store_true")
-        self.parser.add_argument("--hook")
     
     def _run(self, namespace, member:CrewMember):
         if namespace.list:
-            ret = ["Unhooked : "+" , ".join([repr(service) for service in self.crew.services["free"]])]
-            for hook, services in self.crew.services["hooked"].items():
-                ret.append(f"Hooked on [{hook}] : "+" , ".join([repr(service) for service in services]))
-            return " | ".join(ret)
+            return ", ".join([repr(service) for service in self.crew.service])
         
         elif namespace.status:
             service_name = namespace.status
-            for service in self.crew.get_services_list():
+            for service in self.crew.services:
                 if service_name == service.name:
                     return service.get_status()
             return f"Found no service with name {service_name}"
         
         elif namespace.add:
             service_name = namespace.add
-            self.crew.add_service_to_cfg(service_name, namespace.hook)
+            self.crew.add_service_to_cfg(service_name)
         
         elif namespace.remove:
-            self.crew.remove_service_from_cfg(service_name, namespace.hook)
+            self.crew.remove_service_from_cfg(service_name)
         
         elif namespace.start:
-            service = self.crew.get_service_from_name(service_name, namespace.hook)
+            service = self.crew.get_service_from_name(service_name)
             service.start()
 
         elif namespace.stop:
-            service = self.crew.get_service_from_name(service_name, namespace.hook)
+            service = self.crew.get_service_from_name(service_name)
             service.stop()
         
         elif namespace.reload:

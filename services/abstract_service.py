@@ -5,11 +5,11 @@ from threading import Thread
 class AbstractService(ABC):
     """
     A service is an object that can interact with a crew object
-    it mainly works by waiting for some time, reading/settign crew propreties,
+    it mainly works by waiting for some time, reading/setting crew properties,
     repeating the cycle
     """
 
-    def __init__(self, crew:Crew, connector:Connector, name:str):
+    def __init__(self, crew:Crew, connector:Connector, name:str, **kwargs):
         self.crew:Crew = crew
         self.connector:Connector = connector
         self.name = name

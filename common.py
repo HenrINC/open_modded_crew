@@ -477,6 +477,7 @@ it has a bunch of robustness
             
             self.request(requests.post, URL, payload, auth_type="bearer")
 
+
 #JMP:CREW
 class CrewSingleton(type):
     _instances:dict = {}
@@ -495,10 +496,7 @@ class CrewSingleton(type):
 
 class Crew(metaclass=CrewSingleton):
     def __init__(self, name:str, connector):
-        self.services = {
-            "hooked":{},
-            "free":[]
-        }
+        self.services = []
         self.service_config = {}
         self.commands = []
         self.command_config = {}
@@ -518,12 +516,6 @@ class Crew(metaclass=CrewSingleton):
         self.members:list[CrewMember]
         self.update_members()
         self.style = False
-    
-    def add_hooked_service(self, hook, service):
-        if hook not in self.services["hooked"]:
-            self.services["hooked"][hook] = []
-        if service not in self.services["hooked"][hook]:
-            self.services["hooked"][hook].append(service)
 
     def save_config(self):
         with open(f"services/{self.name}.json", "w") as file:
@@ -535,17 +527,8 @@ class Crew(metaclass=CrewSingleton):
         self.service_config = get_json_or_default(
             f"services/{self.name}.json",
             {
-                "hooked": {
-                    "posts": [
-                        "command_service"
-                    ],
-                    "style": {
-                        
-                    }
-                },
-                "free": [
-                    "hook_service"
-                ]
+                "command_service": {},
+                "hook_service": {}
             }
         )
         self.command_config = get_json_or_default(
@@ -614,8 +597,6 @@ class Crew(metaclass=CrewSingleton):
                 self.style = payload
                 break
     
-
-    
     def get_style(self):
         if not self.style:
             self.update_style()
@@ -625,68 +606,39 @@ class Crew(metaclass=CrewSingleton):
         url = f"https://scapi.rockstargames.com/feed/crew?crewId={self.id}&offset=0&limit={limit}&title=&platform=&group=all"
         response = self.connector.request(requests.get, url, auth_type="bearer")
         return response.json()["activities"]
-
-    def get_services_list(self) -> list:
-        """Puts all the services in a list for iteration"""
-        services = self.services["free"]
-        for hook in self.services["hooked"]:
-            services.extend(self.services["hooked"][hook])
-        return services
     
     def import_service_from_name(self, name):
         module = __import__(f"services.{name}") 
         file = getattr(module, name)
         return file.Service
 
-    def add_service(self, service_name, hook=None):
-        service = self.import_service_from_name(service_name)(self, self.connector, service_name)
-        if hook is None:
-            self.services["free"].append(service)
-        else:
-            self.add_hooked_service(hook, service)
+    def add_service(self, service_name, cfg):
+        service = self.import_service_from_name(service_name)(self, self.connector, service_name, **cfg)
         service.start()
-        
+        self.services.append(service)
     
     def reload_services(self):
-        for service in self.get_services_list():
+        for service in self.services:
             service.stop()
-        self.services = {
-            "hooked":{},
-            "free":[]
-        }
-        for service_name in self.service_config["free"]:
-            self.add_service(service_name)
-        for hook in self.service_config["hooked"]:
-            for service_name in self.service_config["hooked"][hook]:
-                self.add_service(service_name, hook)
+        self.services = []
+        for service_name, service_cfg in self.service_config.items():
+            self.add_service(service_name, service_cfg)
     
-    def add_service_to_cfg(self, service_name, hook=None):
+    def add_service_to_cfg(self, service_name):
         if service_name not in [i.rsplit(".py", 1)[0] for i in os.listdir("services")]:
             raise ValueError(f"\"{service_name}\" is not in the services directory")
-        if hook is None:
-            srvc_list:list = self.service_config["free"]
-        else:
-            srvc_list:list = self.service_config["hooked"][hook]
-        srvc_list.append(service_name)
+        self.service_config[service_name] = {}
         self.save_config()
     
-    def remove_service_from_cfg(self, service_name, hook=None):
-        if hook is None:
-            srvc_list:list = self.service_config["free"]
-        else:
-            srvc_list:list = self.service_config["hooked"][hook]
-        srvc_list.remove(service_name)
+    def remove_service_from_cfg(self, service_name):
+        self.service_config.pop(service_name)
         self.save_config()
     
-    def get_service_from_name(self, service_name, hook=None):
-        if hook is None:
-            for service in self.services["free"]:
-                if service.name == service_name:
-                    return service
-        else:
-            for service in self.services["hooked"][hook]:
-                if service.name == service_name:
-                    return service
+    def get_service_from_name(self, service_name):
+        for service in self.services["free"]:
+            if service.name == service_name:
+                return service
+        raise ValueError(f"No service with name {service_name} found")
 
     def import_command_from_name(self, name):
         module = __import__(f"commands.{name}") 

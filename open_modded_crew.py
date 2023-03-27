@@ -1,9 +1,5 @@
 from common import Crew, Connector
-from _thread import start_new_thread as new_thread
-#from services.hook_service import Service as HookService
-from services.abstract_service import AbstractService
 import time
-from services.hook_service import Service as HookService
 import json
 
 print("#"*50)

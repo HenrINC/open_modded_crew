@@ -24,37 +24,17 @@ class Service(AbstractService):
     def _loop(self):
         for hook, hook_cfg in self.hooks.items():
             if time.time() - hook_cfg["last_call"] > hook_cfg["frequency"]:
-                hook_data = hook_cfg["callback"]()
+                try:
+                    hook_data = hook_cfg["callback"]()
+                except Exception as e:
+                    logging.error(f"Could not get info for hook [{hook}] because of {e}")
+                    continue
                 for service in self.crew.services:
-                    
-
-
-        if "hooked" in self.crew.services:
-            
-            if self.can_call_hook("posts"):
-                hooked_services = self.crew.services["hooked"]["posts"]
-                try:
-                    posts = self.crew.get_wall_posts()
-                    for service in hooked_services:
-                        if service.running:
-                            service.on_post(posts)
-                except:
-                    logging.error("Could not get wall posts")
-                finally:
-                    self.last_hook_call["posts"] = time.time()
-                
-            if self.can_call_hook("style"):
-                hooked_services = self.crew.services["hooked"]["style"]
-                try:
-                    style = self.crew.get_style()
-                    for service in hooked_services:
-                        if service.running:
-                            service.on_style(style)
-                except:
-                    print("Could not get style")
-                
-                finally:
-                    self.last_hook_call["style"] = time.time()
-
+                    if service.running and hasattr(service, f"on_{hook}"):
+                        try:
+                            getattr(service, f"on_{hook}")(hook_data)
+                        except Exception as e:
+                            logging.error(f"Could not call [{service}]'s on_{hook} because of {e}")
+                            continue
 
 
