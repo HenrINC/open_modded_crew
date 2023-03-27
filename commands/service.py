@@ -48,5 +48,5 @@ class Command(LazyCommand):
             service.stop()
         
         elif namespace.reload:
-            self.crew.relaod_services()
+            self.crew.reload_services()
 

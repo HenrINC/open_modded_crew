@@ -9,21 +9,26 @@ class Service(AbstractService):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.last_hook_call = {
-            "posts": 0,
-            "style": 0
+        self.hooks = {
+            "posts": {
+                "last_call": 0,
+                "frequency": 5,
+                "callback": self.crew.get_wall_posts
+            },
+            "style": {
+                "last_call": 0,
+                "frequency": 300,
+                "callback": self.crew.get_style()
+            }
         }
-        self.hook_call_cfg = {
-            "posts": 5,
-            "style": 300
-        }
-    def can_call_hook(self, hook):
-        return \
-            hook in self.crew.services["hooked"] and \
-            hook in self.hook_call_cfg and \
-            hook in self.last_hook_call and \
-            time.time() - self.hook_call_cfg[hook] > self.last_hook_call[hook]
     def _loop(self):
+        for hook, hook_cfg in self.hooks.items():
+            if time.time() - hook_cfg["last_call"] > hook_cfg["frequency"]:
+                hook_data = hook_cfg["callback"]()
+                for service in self.crew.services:
+                    
+
+
         if "hooked" in self.crew.services:
             
             if self.can_call_hook("posts"):

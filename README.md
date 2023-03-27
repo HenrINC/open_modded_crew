@@ -83,7 +83,6 @@ The bot also comes with some builtin commands and services that can be enabled w
 Here is a list of the builtin commands that can be added:
 
 - `/joke`: Returns a random joke from the [official JokeAPI](https://jokeapi.dev/).
-- `/quote` (COMING SOON): Returns a random quote from the [Forismatic API](https://forismatic.com/en/api/).
 - `/coinflip` (COMING SOON): Flips a coin and returns either "heads" or "tails".
 - `/roll <number>` (COMING SOON): Rolls a dice with a specified number of sides and returns the result.
 - `/style`: Allows enhanced crew customization (more on that in the "style" section).

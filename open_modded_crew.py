@@ -21,7 +21,7 @@ crews = []
 for crew_name in config["crews"]:
     crew = Crew(name=crew_name, connector=connector)
     crew.load_config()
-    crew.relaod_services()
+    crew.reload_services()
     crew.reload_commands()
     crews.append(crew)
 

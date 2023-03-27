@@ -34,7 +34,7 @@ def split_big_text(text, max_len):
     else:
         return [text]
 
-def fix_style_proprety_value(text:str):
+def fix_style_property_value(text:str):
     for i, j in {
         #Crew ranks
         "&gt;": ">", 
@@ -87,7 +87,7 @@ def go_as_blind_where(driver, fun, timeout = 30):
         if end < time.time():
             raise TimeoutError("Can't go there in time")
 
-def compleate_fields(driver,fields, timeout = 30):
+def complete_fields(driver,fields, timeout = 30):
     """
 Fields is a dict {css_selector:keys}
 """
@@ -151,14 +151,14 @@ class Connector():
         
     def ensure_framebuffer(self):
         """
-        This programm is intended to be used on headless servers but:
-         - the socialclub website does not work with headless chrome
+        This program is intended to be used on headless servers but:
+         - the RGSC website does not work with headless chrome
         so we need to install something like xvfb
-        this method will ensure that chromium can outpout it's display
+        this method will ensure that chromium can output it's display
         on a framebuffer
         """
         
-        #This can seem a bit junky but tk ships whith python so no more requirements
+        #This can seem a bit junky but tk ships with python so no more requirements
         try:
             test_gui_app = tkinter.Tk()
             test_gui_app.withdraw()
@@ -215,7 +215,7 @@ class Connector():
     
     def _account_login(self):
         self.driver.get("https://signin.rockstargames.com/signin/user-form?cid=socialclub")
-        compleate_fields(self.driver,{"form [name=keepMeSignedIn]":""})
+        complete_fields(self.driver,{"form [name=keepMeSignedIn]":""})
         self.driver.execute_script(
            """document.querySelector("form [name=keepMeSignedIn]").click()"""
         )
@@ -227,7 +227,7 @@ class Connector():
                 name="RCTRL thread"
             )
             self.rctrl_thread.start()
-        compleate_fields(self.driver,{
+        complete_fields(self.driver,{
             "form [type=email]": credentials["email"],
             "form [type=password]": credentials["password"],
             "form [type=submit]": Keys.ENTER,
@@ -270,18 +270,18 @@ class Connector():
             self._cookie_login()
             try:
                 self.driver.find_element(By.CSS_SELECTOR, "[type=button][href]")
-                loged_in = False
+                logged_in = False
             except:
-                loged_in = True
+                logged_in = True
         
-        if not loged_in:
+        if not logged_in:
             assert self._account_login(), "Could not login"
         
         with open("verif_token.txt", "r") as file:
             self.verif_token = file.read()
         self.update_cookies()
         self.keep_cookies_fresh()
-        logging.info("SUCCESFULL login")
+        logging.info("SUCCESSFUL login")
 
     def update_cookies_api(self):
         """
@@ -356,7 +356,7 @@ it has a bunch of robustness
                 if "json" in response.headers["content-type"].lower():
                     content = response.json()
                     if response.status_code in [200, 500]:
-                        #Sometimes an error returns code 200, sometimes it's 500, the body can spot the diference tho
+                        #Sometimes an error returns code 200, sometimes it's 500, the body can spot the difference tho
                         if "Error" in content:
                             logging.warning(f"API ERROR : [{content['Error']['_msg']}] Attempting to fix...")
                         elif "error" in content: #The other type of error you'll probably never see
@@ -380,12 +380,12 @@ it has a bunch of robustness
                     last_code = response.status_code
 
                 else:
-                    logging.warning(f"The API returnd a non JSON response with code [{response.status_code}], it's an issue we can't solve")
-                    logging.debug("The progarmm will wait 5 seconds to avoid the next response to be glitched too")
+                    logging.warning(f"The API returned a non JSON response with code [{response.status_code}], it's an issue we can't solve")
+                    logging.debug("The program will wait 5 seconds to avoid the next response to be glitched too")
                     time.sleep(5)
                     return response
             except:
-                logging.exception("An unexpected error occured, waiting might solve it")
+                logging.exception("An unexpected error ocurred, waiting might solve it")
                 time.sleep(5)
 
         logging.error("Couldn't solve the issue, here is the response")
@@ -480,15 +480,15 @@ it has a bunch of robustness
 #JMP:CREW
 class CrewSingleton(type):
     _instances:dict = {}
-    def __call__(cls, *args, **kargs):
-        if "name" in kargs:    
-            name = kargs['name'] 
-            #del kargs["name"]
+    def __call__(cls, *args, **kwargs):
+        if "name" in kwargs:    
+            name = kwargs['name'] 
+            #del kwargs["name"]
         else:
             name = cls.__name__
 
         if name not in cls._instances:
-            cls._instances[name] = super().__call__(*args, **kargs)
+            cls._instances[name] = super().__call__(*args, **kwargs)
         
         return cls._instances[name]
 
@@ -610,7 +610,7 @@ class Crew(metaclass=CrewSingleton):
                         'RankTitle4', 'RankTitle5', 'RankTitle6',
                         'RankTitle7', 'RankTitle8', 'RankTitle9',
                         'RankTitle10', 'crewAnimation']:
-                    payload[key] = fix_style_proprety_value(i[key[0].upper()+key[1:]])
+                    payload[key] = fix_style_property_value(i[key[0].upper()+key[1:]])
                 self.style = payload
                 break
     
@@ -647,7 +647,7 @@ class Crew(metaclass=CrewSingleton):
         service.start()
         
     
-    def relaod_services(self):
+    def reload_services(self):
         for service in self.get_services_list():
             service.stop()
         self.services = {
@@ -717,7 +717,7 @@ class Crew(metaclass=CrewSingleton):
 """
 Ok so player objects are quite unintuitive.
 They all inherit from base player and are all "singleton"
-The singleton metaclass il also wierd because if you init a CrewMember
+The singleton metaclass il also weird because if you init a CrewMember
 with a name that is already in taken by an instance of Player,
 the instance of Player will be returned instead of an instance of CrewMember
 therefore, all of the methods of CrewMember need to work with Player
@@ -725,23 +725,23 @@ therefore, all of the methods of CrewMember need to work with Player
 
 class PlayerSingleton(type):
     __instances__:dict[str, "AbstractPlayer"] = {}
-    def __call__(cls:"AbstractPlayer", *args, **kargs):
+    def __call__(cls:"AbstractPlayer", *args, **kwargs):
         priority = cls.__priority__ if hasattr(cls, '__priority__') else 0    
-        if "name" in kargs:    
-            name = kargs['name']
+        if "name" in kwargs:    
+            name = kwargs['name']
         else:
             name = cls.__name__
         if name in cls.__instances__:
             instance = cls.__instances__[name]
             instance_priority = instance.__priority__ if hasattr(instance, '__priority__') else 0
-            #If the class we want to instanciate has higher priority
+            #If the class we want to instantiate has higher priority
             if instance_priority < priority:
                 #We need to replace that lower priority instance by the higher one
                 instance.__class__ = cls
                 instance.update_from_lower_class()
 
         else:
-            cls.__instances__[name] = super().__call__(*args, **kargs)
+            cls.__instances__[name] = super().__call__(*args, **kwargs)
         
         return cls.__instances__[name]
 
