@@ -13,12 +13,12 @@ To use the open_modded_crew bot, you'll need to follow these steps:
 1. Clone the repository from the open_modded_crew GitHub page.
 
 2. Create a `credentials.json` file in the same directory as `open_modded_crew.py` with your Social Club email and password in the following format:
-'''
+`
 {
     "email": "address@server",
     "password": "password"
 }
-'''
+`
 3. Create a `config.json` file in the same directory as `open_modded_crew.py` with the names of the crews you want to manage in the following format:
 '''
 {
