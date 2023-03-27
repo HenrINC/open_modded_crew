@@ -44,6 +44,17 @@ The open_modded_crew bot includes the following features:
 
 The bot provides a set of commands with a CLI-like syntax that allow users to interact with it and access its functionality. By default, only the `/command` and `/service` commands are enabled. The `/command` command is used to manage, enable, or disable other commands, while the `/service` command is used to manage services that the bot can provide. In this section, we will provide a description of each command and how to use them. Additionally, we will show how to add new commands to the bot.
 
+### Rank Requirements 
+
+Each command has a rank requirement, which is based on the RGSC rank system. In this system, the leader (highest rank) is given a rank of 0, the commissioner has a rank of 1, and so on, until the muscle rank, which is 4. 
+
+To restrict access to a command based on rank, you can set a minimum rank requirement for the command. For example, if you set the rank requirement to 2, only members with a rank of 2 or higher (which includes lieutenants and above) will be able to use the command. 
+
+To set the rank requirement for a command, use the "--rank" option on either the "-update" or the "-add" switch of the "/command" command
+
+Example:
+`/command -update style --rank 2`
+
 ### Using the /command command
 
 You can use the following switches with the `/command` command:
@@ -53,6 +64,7 @@ You can use the following switches with the `/command` command:
 - `-update <command name> [--rank <minimum rank>]`: Updates the configuration of the command with the specified name.
 - `-list`: Lists all added commands.
 - `-reload`: Commits and applies any changes made to the command configuration.
+
 
 ## Conclusion
 
