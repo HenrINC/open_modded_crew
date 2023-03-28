@@ -91,7 +91,7 @@ Here is a list of the builtin commands that can be added:
 
 Here is a list of the builtin services that can be added:
 
-- `auto-moderation` (COMING SOON): Automatically moderates messages and reactions based on specific rules and filters.
+- `auto-moderation` (COMING SOON): Automatically moderates messages using the [OpenAi moderation API](https://platform.openai.com/docs/guides/moderation).
 - `welcome-message` (COMING SOON): Sends a welcome message to new members when they join the server.
 - `leave-message` (COMING SOON): Sends a message to the server when a member leaves.
 - `style`: Allows enhanced crew customization (more on that in the "style" section).
