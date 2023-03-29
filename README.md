@@ -84,15 +84,15 @@ Here is a list of the builtin commands that can be added:
 
 - `/joke`: Returns a random joke from the [official JokeAPI](https://jokeapi.dev/).
 - `/coinflip` (COMING SOON): Flips a coin and returns either "heads" or "tails".
-- `/roll <number>` (COMING SOON): Rolls a dice with a specified number of sides and returns the result.
+- `/roll [-max <number>]` (COMING SOON): Rolls a dice with a specified number of sides and returns the result.
 - `/style`: Allows enhanced crew customization (more on that in the "style" section).
 
 ### Services
 
 Here is a list of the builtin services that can be added:
 
-- `auto-moderation` (COMING SOON): Automatically moderates messages using the [OpenAi moderation API](https://platform.openai.com/docs/guides/moderation).
-- `welcome-message` (COMING SOON): Sends a welcome message to new members when they join the server.
+- `auto-moderation`: Automatically moderates messages using the "unitary/toxic-bert" model. More info in the "Auto-moderation" section
+- `welcome-message` (NEED TO PORT FROM LEGACY): Sends a welcome message to new members when they join the server.
 - `leave-message` (COMING SOON): Sends a message to the server when a member leaves.
 - `style`: Allows enhanced crew customization (more on that in the "style" section).
 
@@ -109,6 +109,11 @@ By default, the style command and service are not enabled. To enable them, use t
 - `-add [--property <property name> [--value <property value>]]`: Add a new value the style configuration. If `--property` is defined, only sets the value of the specified property. If `--value` is specified, sets it to the specified value, else to the value of the current property. All properties can have multiple values. The service will randomly choose one from the list of values when committing the changes. 
 - `-remove --property <property name> --value <property value>`: Remove a value's property from the configuration.
 
+## Auto-moderation
+
+The Auto-Moderator service is designed to help manage the crew by automatically moderating messages using an AI model. This service is not enabled by default, and needs to be activated using the `/service -add auto-moderator` command.
+
+Note that while the Auto-Moderator service can help reduce the workload of moderators, it is not perfect and may occasionally make mistakes. Therefore, it is important to continue to manually moderate the crew to ensure that it remains a safe and welcoming community.
 
 ## Conclusion
 

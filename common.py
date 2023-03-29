@@ -447,14 +447,6 @@ it has a bunch of robustness
         return response
 
     #TODO find a better place for those methods
-
-    def like_post(self, post_id, set_liked = True):
-        URL = "https://scapi.rockstargames.com/feed/likes"
-        payload = {
-            "postId" : post_id,
-            "setLiked" : set_liked
-            }
-        self.request(requests.post, URL, payload, auth_type="Bearer")
     
     def get_self_player(self) -> "Player":
         if self.player is None:
@@ -470,13 +462,29 @@ it has a bunch of robustness
             comment = split_big_text(comment, 140)
             
         for i in comment:
+            for j, k in {
+                "<":"[",
+                ">":"]"
+            }.items():
+                i = i.replace(j, k)
             payload = {
                 "message": i,
                 "postId": post_id
                 }
             
             self.request(requests.post, URL, payload, auth_type="bearer")
-
+    
+    def like_post(self, post_id, set_liked = True):
+        URL = "https://scapi.rockstargames.com/feed/likes"
+        payload = {
+            "postId" : post_id,
+            "setLiked" : set_liked
+        }
+        self.request(requests.post, URL, payload, auth_type="bearer")
+    
+    def delete_post(self, post_id):
+        url = f"https://scapi.rockstargames.com/feed/deletePost?postId={post_id}"
+        self.request(requests.post, url, auth_type="bearer")
 
 #JMP:CREW
 class CrewSingleton(type):

@@ -18,7 +18,7 @@ class Command(LazyCommand):
     
     def _run(self, namespace, member:CrewMember):
         if namespace.list:
-            return ", ".join([repr(service) for service in self.crew.service])
+            return ", ".join([repr(service) for service in self.crew.services])
         
         elif namespace.status:
             service_name = namespace.status

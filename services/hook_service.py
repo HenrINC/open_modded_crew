@@ -10,7 +10,7 @@ class Service(AbstractService):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.hooks = {
-            "posts": {
+            "post": {
                 "last_call": 0,
                 "frequency": 5,
                 "callback": self.crew.get_wall_posts
@@ -18,23 +18,24 @@ class Service(AbstractService):
             "style": {
                 "last_call": 0,
                 "frequency": 300,
-                "callback": self.crew.get_style()
+                "callback": self.crew.get_style
             }
         }
     def _loop(self):
         for hook, hook_cfg in self.hooks.items():
             if time.time() - hook_cfg["last_call"] > hook_cfg["frequency"]:
+                hook_cfg["last_call"] = time.time()
                 try:
                     hook_data = hook_cfg["callback"]()
                 except Exception as e:
-                    logging.error(f"Could not get info for hook [{hook}] because of {e}")
+                    logging.error(f"Could not get info for hook [{hook}] because of [{e}]")
                     continue
                 for service in self.crew.services:
                     if service.running and hasattr(service, f"on_{hook}"):
                         try:
                             getattr(service, f"on_{hook}")(hook_data)
                         except Exception as e:
-                            logging.error(f"Could not call [{service}]'s on_{hook} because of {e}")
+                            logging.error(f"Could not call [{service}]'s [on_{hook}] because of [{e}]")
                             continue
 
 
