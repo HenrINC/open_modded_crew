@@ -19,17 +19,17 @@ In the future admin should be able to tweak the model and the threshold
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
         self.threshold = 0.01
         self.processed = []
+        self.batch_size = 50
     
     def get_toxicity(self, text):
         inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True)
         outputs = self.model(**inputs)
         probabilities = torch.softmax(outputs.logits, dim=-1)
         toxicity = probabilities[:, 1].item()
-        
         return toxicity
 
     def on_post(self, posts):
-        for post in posts[:50]:
+        for post in posts[:self.batch_size]:
             post_id = post["id"]
             #TODO Add broadcast messages
             if post["type"] == "wrote_crew_wall_message" and \
@@ -39,9 +39,8 @@ In the future admin should be able to tweak the model and the threshold
                 #For some reason the more toxic, the lower the toxicity
                 if toxicity < self.threshold: 
                     self.connector.delete_post(post_id)
-                print(f"Toxicity : {toxicity}, content : {content}")
                 self.processed.append(post_id)
-        self.processed = self.processed[:50]
+        self.processed = self.processed[:self.batch_size]
                 
     def start(self):
         self.running = True
