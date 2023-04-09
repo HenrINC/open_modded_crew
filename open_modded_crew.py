@@ -19,6 +19,7 @@ for crew_name in config["crews"]:
     crew.load_config()
     crew.reload_services()
     crew.reload_commands()
+    crew.save_config()
     crews.append(crew)
 
 while True:
