@@ -83,23 +83,29 @@ The bot also comes with some builtin commands and services that can be enabled w
 Here is a list of the builtin commands that can be added:
 
 - `/joke`: Returns a random joke from the [official JokeAPI](https://jokeapi.dev/).
-- `/coinflip` (COMING SOON): Flips a coin and returns either "heads" or "tails".
-- `/roll [-max <number>]` (COMING SOON): Rolls a dice with a specified number of sides and returns the result.
-- `/style`: Allows enhanced crew customization (more on that in the "style" section).
+- `/mute` (PLANNED): Removes all messages posted by a specific player. The player can still post but all of it's messages will be removed every 5 seconds
+- `/event` (PLANNED): Plans events at a certain date and posts reminders on the wall before the event starts
+- `/coinflip`: Flips a coin and returns either "heads" or "tails".
+- `/roll [-max <number>]`: Rolls a dice with a specified number of sides (default is 6) and returns the result.
+- `/style`(NEED UPDATE): Allows enhanced crew customization (more on that in the "style" section).
 
 ### Services
 
 Here is a list of the builtin services that can be added:
 
 - `auto-moderation`: Automatically moderates messages using the "unitary/toxic-bert" model. More info in the "Auto-moderation" section
-- `welcome-message`: (NEED TO PORT FROM LEGACY): Sends a welcome message to new members when they join the server.
-- `leave-message`: (COMING SOON): Sends a message to the server when a member leaves.
-- `archive`: Only keeps the las 20 commands answered to make the crew wall look clean.
-- `style`: Allows enhanced crew customization (more on that in the "style" section).
+- `welcome-message`(NEED TO PORT FROM LEGACY): Sends a welcome message to new members when they join the server.
+- `leave-message`(PLANNED): Sends a message to the server when a member leaves.
+- `translator`: Comments posts with it's translation in configured languages
+- `archive`: Only keeps only the commands posted less than 10 minutes ago to keep the crew wall clean.
+- `tracking`: Allows you to track the invitations sent by your crew members. How much were sent, how much were accepted, how much the invitee stayed in the crew.  
+- `style`(NEED UPDATE): Allows enhanced crew customization (more on that in the "style" section).
 
 To enable a builtin command or service, use the `/command -add` or `/service -add` command with the name of the command or service you want to enable. For example, to enable the `/joke` command, use `/command -add joke`.
 
 ## Style
+
+__Rockstar changed the EditCrew endpoint, styles won't apply on your crew, i'm working on a fix__ 
 
 This whole project started as warper around the "EditCrew" API endpoint so the style and modding aspect of the project is still there in the form of a service and a command. The service is there to commit style config every 2 minutes to avoid unnecessary requests. The command is there to update the style config.
 
