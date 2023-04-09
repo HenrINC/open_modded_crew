@@ -6,19 +6,21 @@ class Service(AbstractService):
     """
     Builtin service that executes the commands
     """
+    last_update = 0
 
     def on_style(self, style):
         self.crew.update_style()
     
     def _loop(self):
-        if "style_service_delay" in self.crew.service_config:
-            delay = self.crew.service_config["style_service_delay"]
+        if "delay" in self.crew.service_config:
+            delay = self.crew.service_config["delay"]
         else:
             delay = 300
-        if "style_service_config" in self.crew.service_config:
-            style = self.style_config_to_style(self.crew.service_config["style_service_config"])
-            self.crew.set_style(style)
-        time.sleep(delay)
+        if self.last_update + delay < time.time(): 
+            if "style" in self.crew.service_config["style"]:
+                style = self.style_config_to_style(self.crew.service_config["style"]["style"])
+                self.crew.set_style(style)
+            self.last_update = time.time()
     
     def style_config_to_style(self, style_config:dict[str, list[str]]):
         style = style_config.copy()
