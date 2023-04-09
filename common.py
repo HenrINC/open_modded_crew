@@ -22,20 +22,7 @@ from http.server import HTTPServer
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(filename='log.txt', filemode='w')
 
-def split_big_text(text, max_len):
-    DECORATORS_LEN = 8
-    for i in []:
-        text = text.replace(i, "")
-    if len(text) > max_len:
-        part_count = 1+len(text)//(max_len-DECORATORS_LEN)
-        parts = [f"({i+1}/{part_count})"+text[(max_len-DECORATORS_LEN)*i:(1+i)*(max_len-DECORATORS_LEN)]+"..." for i in range(part_count)]
-        parts[-1] = parts[-1][:-3]
-        return parts
-    else:
-        return [text]
-
-def fix_style_property_value(text:str):
-    for i, j in {
+SPECIAL_CHARS_MAPPING = {
         #Crew ranks
         "&gt;": ">", 
         "&lt;": "<",
@@ -70,7 +57,22 @@ def fix_style_property_value(text:str):
         "[italic]": "~italic~", #Italic
         "[bold]" : "~bold~", #Bold
     
-    }.items():
+    }
+
+def split_big_text(text, max_len):
+    DECORATORS_LEN = 8
+    for i in []:
+        text = text.replace(i, "")
+    if len(text) > max_len:
+        part_count = 1+len(text)//(max_len-DECORATORS_LEN)
+        parts = [f"({i+1}/{part_count})"+text[(max_len-DECORATORS_LEN)*i:(1+i)*(max_len-DECORATORS_LEN)]+"..." for i in range(part_count)]
+        parts[-1] = parts[-1][:-3]
+        return parts
+    else:
+        return [text]
+
+def fix_style_property_value(text:str):
+    for i, j in SPECIAL_CHARS_MAPPING.items():
         text = text.replace(i, j)
     return text
 
@@ -134,6 +136,25 @@ class Connector():
         self.disable_cookie_login = False
         
         atexit.register(self.stop)
+
+        self.base_headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "Host": "socialclub.rockstargames.com",
+            "Origin": "https://socialclub.rockstargames.com",
+            "Referer": "https://socialclub.rockstargames.com/",
+            "sec-ch-ua": """Not=A?Brand";v="8", "Chromium";v="110", "Opera GX";v="96""",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "Windows",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 OPR/96.0.0.0",
+            "X-Requested-With": "XMLHttpRequest"
+        }
 
     def proxy_thread_target(self):
         system = platform.system().lower()
@@ -353,14 +374,17 @@ it has a bunch of robustness
                     response:requests.Response = func(url, headers = headers)
                 logging.info(f"Response [{response.status_code}] {url}")
 
-                if "json" in response.headers["content-type"].lower():
+                if "content-type" in response.headers and "json" in response.headers["content-type"].lower():
                     content = response.json()
                     if response.status_code in [200, 500]:
                         #Sometimes an error returns code 200, sometimes it's 500, the body can spot the difference tho
                         if "Error" in content:
                             logging.warning(f"API ERROR : [{content['Error']['_msg']}] Attempting to fix...")
                         elif "error" in content: #The other type of error you'll probably never see
-                            logging.warning(f"API ERROR : [{content['error']['errorMessage']}] Attempting to fix...")
+                            if "errorMessage" in content['error']:
+                                logging.warning(f"API ERROR : [{content['error']['errorMessage']}] Attempting to fix...")
+                            else:
+                                logging.warning(f"API ERROR : [{content['error']['code']}] Attempting to fix...")
                         else:
                             logging.debug("SUCCESS")
                             return response
@@ -399,11 +423,12 @@ it has a bunch of robustness
             auth_type:Union[Literal["cookie", "bearer"], None] = None,
         ) -> requests.Response:
         if auth_type == "cookie":
-            headers = {
+            headers = self.base_headers
+            headers.update({
                 "cookie": self.cookies,
                 "__RequestVerificationToken" : self.verif_token,
                 "Content-Type": "application/json"
-            }
+            })
         elif auth_type == "bearer":
             bearer = self.cookies.split("BearerToken=")[1].split(";")[0]
             headers = {
@@ -433,8 +458,6 @@ it has a bunch of robustness
              'Sec-Fetch-Site': 'same-origin',
              'Sec-Fetch-User': '?1',
              'Upgrade-Insecure-Requests': '1',
-             #'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 OPR/93.0.0.0',
-             #'sec-ch-ua': '"Opera GX";v="93", "Not/A)Brand";v="8", "Chromium";v="107"',
              'sec-ch-ua-mobile': '?0',
              'sec-ch-ua-platform': '"Windows"'}
         for i in range(3):
@@ -462,11 +485,9 @@ it has a bunch of robustness
             comment = split_big_text(comment, 140)
             
         for i in comment:
-            for j, k in {
-                "<":"[",
-                ">":"]"
-            }.items():
-                i = i.replace(j, k)
+            for j, k in SPECIAL_CHARS_MAPPING.items():
+                if not j.startswith("&") and not j.endswith(";"):
+                    i = i.replace(k, j)
             payload = {
                 "message": i,
                 "postId": post_id
@@ -509,7 +530,7 @@ class Crew(metaclass=CrewSingleton):
         self.commands = []
         self.command_config = {}
         self.name = name
-        self.connector = connector
+        self.connector:Connector = connector
         response = self.connector.request(
             requests.get,
             f"https://scapi.rockstargames.com/crew/byname?name={self.name}",
@@ -542,8 +563,8 @@ class Crew(metaclass=CrewSingleton):
         self.command_config = get_json_or_default(
             f"commands/{self.name}.json",
             {
-                "service": {"min_rank": 0},
-                "command": {"min_rank":0}
+                "service": {"rank": 0},
+                "command": {"rank":0}
             }
             
         )
@@ -603,7 +624,7 @@ class Crew(metaclass=CrewSingleton):
                         'RankTitle10', 'crewAnimation']:
                     payload[key] = fix_style_property_value(i[key[0].upper()+key[1:]])
                 self.style = payload
-                break
+                return self.style
     
     def get_style(self):
         if not self.style:
@@ -653,23 +674,26 @@ class Crew(metaclass=CrewSingleton):
         file = getattr(module, name)
         return file.Command
 
-    def add_command(self, command_name, min_rank):
-        command = self.import_command_from_name(command_name)(self, self.connector, command_name, min_rank)
+    def add_command(self, command_name, rank):
+        command = self.import_command_from_name(command_name)(self, self.connector, command_name, rank)
         self.commands.append(command)
     
     def reload_commands(self):
         self.commands = []
         for command_name, cfg in self.command_config.items():
-            min_rank = cfg["min_rank"]
-            self.add_command(command_name, min_rank)
+            rank = cfg["rank"]
+            self.add_command(command_name, rank)
         
-    
-    def add_command_to_cfg(self, command_name, min_rank):
+    def add_command_to_cfg(self, command_name, rank):
         if command_name not in [i.rsplit(".py", 1)[0] for i in os.listdir("commands")]:
             raise ValueError(f"\"{command_name}\" is not in the commands directory")
-        self.command_config.update({command_name: {"min_rank":min_rank}})
+        self.command_config.update({command_name: {"rank":rank}})
         self.save_config()
-        
+    
+    def get_notifications(self, limit = 1000):
+        url = f"https://scapi.rockstargames.com/notification/crew?crewId={self.id}&limit={limit}&since=&reverse=true"
+        notifications = self.connector.request(requests.get, url, auth_type="bearer").json()
+        return notifications["activities"]
 
     
 
@@ -681,6 +705,8 @@ The singleton metaclass il also weird because if you init a CrewMember
 with a name that is already in taken by an instance of Player,
 the instance of Player will be returned instead of an instance of CrewMember
 therefore, all of the methods of CrewMember need to work with Player
+also, if you instantiate the object Player, the CrewMember singleton
+will be upgraded to a Player object  
 """
 
 class PlayerSingleton(type):
@@ -698,14 +724,12 @@ class PlayerSingleton(type):
             if instance_priority < priority:
                 #We need to replace that lower priority instance by the higher one
                 instance.__class__ = cls
-                instance.update_from_lower_class()
+                instance.update_from_lower_class(*args, **kwargs)
 
         else:
             cls.__instances__[name] = super().__call__(*args, **kwargs)
-        
+
         return cls.__instances__[name]
-
-
 
 class AbstractPlayer(metaclass = PlayerSingleton):
     """
@@ -722,7 +746,7 @@ Base class for player
     def to_player(self):
         return NotImplementedError
 
-    def update_from_lower_class(self):
+    def update_from_lower_class(self, *args, **kwargs):
         raise NotImplementedError("Can't update to this class")
 
 class CrewMember(AbstractPlayer):
@@ -751,7 +775,6 @@ class CrewMember(AbstractPlayer):
         raise ValueError(
             f"{self.name} is not a member of {crew.name}"
         )
-        
 
     def to_player(self):
         new =  Player(
@@ -759,7 +782,6 @@ class CrewMember(AbstractPlayer):
             connector=self.connector
         )
         return new
-
 
 class Player(CrewMember):
     """
@@ -773,7 +795,7 @@ class Player(CrewMember):
         self.connector = connector
         self.update_from_lower_class()
         
-    def update_from_lower_class(self):
+    def update_from_lower_class(self, *args, **kwargs):
         url = f"https://scapi.rockstargames.com/profile/getprofile?nickname={self.name}&maxFriends={1000}"
         response = self.connector.request(requests.get, url, auth_type="bearer").json()
         accounts = response["accounts"][0]
