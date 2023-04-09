@@ -36,9 +36,17 @@ To use the open_modded_crew bot, you'll need to follow these steps:
 
 The open_modded_crew bot includes the following features:
 
-- **Crew Management**: The bot allows users to create, manage, and customize their own crews within the Social Club platform. Users can invite members to their crews, assign roles, and manage crew settings.
+- **Crew Management**: The bot allows users to create, manage, and customize their own crews within the Social Club platform.
 
 - **Communication**: Users can communicate with their crew members using the bot's messaging features.
+
+- **Rockstar Games Social Club API integration:** The bot seamlessly integrates with the Rockstar Games Social Club API, providing real-time updates on crew and player information.
+
+- **Customizable commands and services:** The bot's command and service system is highly customizable, allowing you to add, remove, and modify commands and services to suit your specific needs.
+
+- **Automatic moderation using AI:** The bot includes an automatic moderation service that uses AI to detect and flag inappropriate or offensive content in chat.
+
+- **Translation translation using AI:** The bot uses AI to automatically detect the source language of messages on the crew wall and translate them to a specified language, making it easier for members who speak different languages to communicate and stay engaged with the crew.
 
 ## Commands
 
