@@ -15,11 +15,11 @@ class Command(LazyCommand):
     def _run(self, namespace, member:CrewMember):
         ranks = ["Leader", "Commissioner", "Lieutenant", "Representative", "Muscle"]
         if namespace.add:
-            self.crew.add_command_to_cfg(namespace.add, namespace.min_rank)
-            return f"Command [{namespace.add}] added successfully for rank [{ranks[namespace.min_rank]}] and higher"
+            self.crew.add_command_to_cfg(namespace.add, namespace.rank)
+            return f"Command [{namespace.add}] added successfully for rank [{ranks[namespace.rank]}] and higher"
         elif namespace.update:
-            self.crew.command_config[namespace.update]["min_rank"] = namespace.min_rank
-            return f"Command [{namespace.update}] updated successfully for rank [{ranks[namespace.min_rank]}] and higher"
+            self.crew.command_config[namespace.update]["rank"] = namespace.rank
+            return f"Command [{namespace.update}] updated successfully for rank [{ranks[namespace.rank]}] and higher"
         elif namespace.list:
             return ",".join(["/"+command.name for command in self.crew.commands])
         elif namespace.reload:
