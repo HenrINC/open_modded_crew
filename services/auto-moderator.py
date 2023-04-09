@@ -20,6 +20,7 @@ In the future admin should be able to tweak the model and the threshold
         self.threshold = 0.01
         self.processed = []
         self.batch_size = 50
+        self.on_post_max_size = self.batch_size
     
     def get_toxicity(self, text):
         inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True)
@@ -28,18 +29,17 @@ In the future admin should be able to tweak the model and the threshold
         toxicity = probabilities[:, 1].item()
         return toxicity
 
-    def on_post(self, posts):
-        for post in posts[:self.batch_size]:
-            post_id = post["id"]
-            #TODO Add broadcast messages
-            if post["type"] == "wrote_crew_wall_message" and \
-                post_id not in self.processed: 
-                content = post["content"]
-                toxicity = self.get_toxicity(content)
-                #For some reason the more toxic, the lower the toxicity
-                if toxicity < self.threshold: 
-                    self.connector.delete_post(post_id)
-                self.processed.append(post_id)
+    def on_post(self, post):
+        post_id = post["id"]
+        #TODO Add broadcast messages
+        if post["type"] == "wrote_crew_wall_message" and \
+            post_id not in self.processed: 
+            content = post["content"]
+            toxicity = self.get_toxicity(content)
+            #For some reason the more toxic, the lower the toxicity
+            if toxicity < self.threshold: 
+                self.connector.delete_post(post_id)
+            self.processed.append(post_id)
         self.processed = self.processed[:self.batch_size]
                 
     def start(self):
